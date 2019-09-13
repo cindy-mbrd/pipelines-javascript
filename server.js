@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 
 // Constants
 const PORT = 3000;
-const HOST = '0.0.0.0';
+const HOST = "0.0.0.0";
 
 // App
 const app = express();
-app.get('/', (req, res) => {
-  res.send('Hello Node.js Sample!\n');
+app.get("/", (req, res) => {
+  res.send("Hi Mercedes!\n");
 });
 
-var port = process.env.PORT||PORT;
+var port = process.env.PORT || PORT;
 app.listen(port);
 console.log(`Running on http://${HOST}:${PORT}`);
