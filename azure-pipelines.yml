@@ -55,4 +55,5 @@ stages:
         archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
         replaceExistingArchive: true
     - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
       artifact: drop
