@@ -24,14 +24,13 @@ variables:
   vmImageName: 'ubuntu-latest'
 
 stages:
-- stage: Build
-  displayName: Build stage
-  jobs:  
-  - job: Build
-    displayName: Build
-    pool:
+- stage: Test
+  displayName: Test
+  jobs:
+  - job: Test
+    displayName: Test
+    pool: 
       vmImage: $(vmImageName)
-      
     steps:
     - task: NodeTool@0
       inputs:
@@ -43,6 +42,17 @@ stages:
         npm run build --if-present
         npm run test --if-present
       displayName: 'npm install, build and test'
+- stage: Build
+  displayName: Build stage
+  dependsOn: Test
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+      
+    steps:
     - bash: npm prune --production
       displayName: 'Remove dev packages'
     - task: ArchiveFiles@2
@@ -53,14 +63,12 @@ stages:
         archiveType: zip
         archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
         replaceExistingArchive: true
-
     - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
       artifact: drop
 - stage: Deploy
   displayName: 'Deploy'
   dependsOn: Build
-  condition: succeeded()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment: Staging
     displayName: 'Staging'
