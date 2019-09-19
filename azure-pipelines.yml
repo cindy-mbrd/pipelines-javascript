@@ -93,6 +93,7 @@ stages:
     displayName: 'Production'
     dependsOn: Staging
     condition: succeeded()
+    download: none
     environment: $(environmentName)
     pool: 
       vmImage: $(vmImageName)
@@ -100,6 +101,7 @@ stages:
       runOnce:
         deploy:
           steps:
+          - download: none
           - task: AzureAppServiceManage@0
             displayName: 'swap staging with production'
             inputs:
