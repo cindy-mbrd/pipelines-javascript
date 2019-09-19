@@ -5,6 +5,7 @@
 
 trigger:
 - master
+- development
 
 variables:
 
@@ -37,12 +38,13 @@ stages:
         versionSpec: '10.x'
       displayName: 'Install Node.js'
 
-    - script: |
+    - bash: |
         npm install
         npm run build --if-present
         npm run test --if-present
       displayName: 'npm install, build and test'
-      
+    - bash: npm prune --production
+      displayName: 'Remove dev packages'
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
@@ -53,15 +55,15 @@ stages:
         replaceExistingArchive: true
 
     - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
       artifact: drop
-
 - stage: Deploy
-  displayName: Deploy stage
+  displayName: 'Deploy'
   dependsOn: Build
   condition: succeeded()
   jobs:
-  - deployment: Deploy
-    displayName: Deploy to staging
+  - deployment: Staging
+    displayName: 'Staging'
     environment: $(environmentName)
     pool: 
       vmImage: $(vmImageName)
@@ -79,8 +81,10 @@ stages:
               runtimeStack: 'NODE|10.10'
               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
               startUpCommand: 'npm run start'
-  - deployment: DeployToProd
-    displayName: production
+  - deployment: Production
+    displayName: 'Production'
+    dependsOn: Staging
+    condition: succeeded()
     environment: $(environmentName)
     pool: 
       vmImage: $(vmImageName)
